@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cours – Plateforme</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="css/favicon.ico">
+
+    <link rel="shortcut icon" href="css/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="layout">
+
+        <aside>
+            <select id="classFilter"></select>
+            <select id="subjectFilter"></select>
+            <a href="dashboard.html">Retour</a>
+        </aside>
+
+        <main id="course">
+            <!-- Chronometer removed from here; time display moved into reading progress bar -->
+
+            <div id="loader" class="loader">
+                <div class="spinner"></div>
+                <span>Chargement...</span>
+            </div>
+
+            <div id="courseContent"></div>
+
+            <div id="courseMessageSection" class="card">
+                <h3>Une question ?</h3>
+                <textarea id="messageInput" placeholder="Posez votre question..." rows="3" maxlength="350"></textarea>
+                <p id="charCount">0 / 350</p>
+
+                <button id="sendMessageBtn">Envoyer</button>
+                <p id="messageStatus" style="color: rgb(103, 170, 103); font-family:sans-serif ;"></p>
+            </div>
+
+        </main>
+
+
+    </div>
+    <!-- Progression lecture -->
+    <div id="readingProgress">
+        <div class="bar"></div>
+        <span class="label">0%</span>
+        <span class="time" id="chronoDisplay">00:00:00</span>
+    </div>
+    <button id="backToTop" class="back-to-top">↑</button>
+    <footer class="site-footer">
+        <div class="footer-container">
+
+            <div class="footer-brand">
+                <h3>Node</h3>
+                <p>Plateforme d’entraide scolaire collaborative.</p>
+            </div>
+
+            <nav class="footer-links">
+                <a href="mentions-legales.html" class="footer-link">Mentions légales</a>
+            </nav>
+
+            <div class="footer-bottom">
+                <p>© 2026 Node – Tous droits réservés</p>
+            </div>
+
+        </div>
+    </footer>
+
+
+    <script type="module" src="js/course.js"></script>
+
+</body>
+
+</html>

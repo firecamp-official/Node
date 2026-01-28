@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Node - Connexion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="css/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
+  <link rel="stylesheet" href="css/auth.css">
+  <style>
+    .user-count {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: #9be7ff;
+      background: rgba(124, 58, 237, 0.06);
+      padding: 6px 10px;
+      border-radius: 999px;
+      display: inline-block;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body class="center">
+
+  <div class="auth-layout">
+
+    <!-- CONNEXION -->
+    <!-- CONNEXION / INSCRIPTION -->
+    <div class="auth-card">
+      <div id="userCount" class="user-count">Chargement des membres…</div>
+
+      <input id="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Mot de passe">
+      <input id="username" placeholder="Pseudo (inscription)">
+
+      <!-- Checkbox acceptation -->
+      <div class="checkbox-group">
+        <input type="checkbox" id="terms">
+        <label for="terms" class="accept-section">
+          J’ai lu et j’accepte les <a href="conditions-utilisations.html" target="_blank">Conditions d’Utilisation</a>
+          et les
+          <a href="mentions-legales.html" target="_blank">Mentions Légales</a>
+        </label>
+      </div>
+
+
+      <button id="loginBtn">Connexion</button>
+      <button id="registerBtn">Inscription</button>
+    </div>
+
+
+
+    <!-- TEXTE DROITE -->
+    <div class="auth-info">
+      <img src="css/node_logo.png" alt="Logo Node" class="auth-logo">
+      <h2>La plateforme d’entraide entre lycéens</h2>
+
+      <p>
+        <strong>Partage tes cours</strong>, aide les autres et progresse
+        dans un espace pensé pour les élèves.
+      </p>
+
+      <ul>
+        <li>Cours classés par niveau</li>
+        <li>Entraide entre lycéens</li>
+        <li>Comptes sécurisés</li>
+        <li>Simple, rapide, moderne</li>
+      </ul>
+
+      <p class="auth-highlight">
+        Pensé par un lycéen, pour les lycéens.
+      </p>
+    </div>
+    <!-- Advanced "Dernière mise à jour" badge -->
+    <div class="update-container">
+      <div class="update-badge feature">
+        <svg class="update-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path fill="currentColor"
+            d="M12 1a11 11 0 1 0 11 11A11 11 0 0 0 12 1zm0 20a9 9 0 1 1 9-9 9 9 0 0 1-9 9zm.5-9V6h-1v7h6v-1z" />
+        </svg>
+        <span class="update-text">Dernière mise à jour : 23/01/2026 à 15:15</span>
+      </div>
+      <div class="update-details">
+        🔹 Ajout de la feature <strong>“À revoir / À apprendre”</strong> pour permettre aux élèves de marquer leurs
+        cours favoris.<br>
+        🔹 Correction de bugs mineurs sur les espaces utilisateur et administrateur.<br>
+        🔹 Amélioration de la réactivité sur mobile.
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/auth.js"></script>
+</body>
+
+</html>
