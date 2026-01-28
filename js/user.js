@@ -1,5 +1,13 @@
 import { supabase } from "./supabase.js";
 import { requireUser } from "./uxGuard.js";
+function escapeHTML(str = "") {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 // ⚡ Vérifie session + profil
 const { user, profile } = await requireUser();
@@ -11,43 +19,53 @@ profileLetter.textContent = profile.username?.charAt(0).toUpperCase() ?? "?";
 // ⚡ Création dropdown dynamique
 const dropdown = document.createElement("div");
 dropdown.classList.add("profile-dropdown");
+const safeUsername = escapeHTML(profile.username ?? "Utilisateur");
+const safeEmail = escapeHTML(user.email ?? "—");
+const avatarLetter = (profile.username?.charAt(0) ?? "?").toUpperCase();
+
 dropdown.innerHTML = `
-    <div class="dropdown-header">
-      <div class="avatar">${(profile.username?.charAt(0) ?? "?").toUpperCase()}</div>
-      <div class="user-info">
-        <div class="username">${profile.username ?? "Utilisateur"}</div>
-        <div class="email">${user.email ?? "—"}</div>
-        <div id="finishedCount" class="finished-counter">0 cours terminés</div>
-      </div>
+  <div class="dropdown-header">
+    <div class="avatar">${avatarLetter}</div>
+    <div class="user-info">
+      <div class="username">${safeUsername}</div>
+      <div class="email">${safeEmail}</div>
+      <div id="finishedCount" class="finished-counter">0 cours terminés</div>
     </div>
-
-    <div class="dropdown-body">
-      <label class="field">Nom de profil : <input id="usernameInput" type="text" value="${profile.username}"></label>
-      <div class="actions">
-        <button id="renameBtn" class="primary">Renommer</button>
-        <button id="logoutBtn" class="secondary">Se déconnecter</button>
-        <button id="deleteBtn" class="danger">Supprimer le compte</button>
-      </div>
-      <div style="margin-top:10px;">
-        <label class="field">Thème :
-          <select id="themeSelect" style="margin-top:6px; width:100%; padding:8px; border-radius:8px;">
-            <option value="">Système / Dark (par défaut)</option>
-            <option value="light">Light</option>
-            <option value="ocean">Ocean</option>
-            <option value="sunset">Sunset</option>
-            <option value="midnight">Midnight</option>
-          </select>
-        </label>
-      </div>
-      <div class="messages-section" style="margin-top: 15px;">
-  <h3>Messagerie</h3>
-  <div id="userMessagesList">
-    <p>Chargement des messages...</p>
   </div>
-</div>
 
+  <div class="dropdown-body">
+    <label class="field">
+      Nom de profil :
+      <input id="usernameInput" type="text" value="${safeUsername}">
+    </label>
+
+    <div class="actions">
+      <button id="renameBtn" class="primary">Renommer</button>
+      <button id="logoutBtn" class="secondary">Se déconnecter</button>
+      <button id="deleteBtn" class="danger">Supprimer le compte</button>
     </div>
-  `;
+
+    <div style="margin-top:10px;">
+      <label class="field">Thème :
+        <select id="themeSelect" style="margin-top:6px; width:100%; padding:8px; border-radius:8px;">
+          <option value="">Système / Dark (par défaut)</option>
+          <option value="light">Light</option>
+          <option value="ocean">Ocean</option>
+          <option value="sunset">Sunset</option>
+          <option value="midnight">Midnight</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="messages-section" style="margin-top: 15px;">
+      <h3>Messagerie</h3>
+      <div id="userMessagesList">
+        <p>Chargement des messages...</p>
+      </div>
+    </div>
+  </div>
+`;
+
 profileBubble.parentNode.appendChild(dropdown);
 // pastille notification
 const profileBubbleDot = document.createElement("span");
@@ -55,16 +73,15 @@ profileBubbleDot.classList.add("message-dot");
 profileBubble.appendChild(profileBubbleDot);
 
 const userMessagesList = dropdown.querySelector("#userMessagesList");
-
 async function loadUserMessages() {
   const { data: messages, error } = await supabase
     .from("course_messages")
-    .select("*")
+    .select("id, message, answer, status, created_at")
     .eq("user_id", profile.id)
     .order("created_at", { ascending: false });
 
   if (error) {
-    userMessagesList.innerHTML = `<p>Erreur : ${error.message}</p>`;
+    userMessagesList.textContent = "Erreur de chargement.";
     return;
   }
 
@@ -78,23 +95,47 @@ async function loadUserMessages() {
   userMessagesList.innerHTML = "";
 
   messages.forEach(msg => {
-    const div = document.createElement("div");
-    div.className = "message-item";
-    if (msg.status !== "answered") {
-      div.classList.add("unread");
-      unread++;
-    }
+  const div = document.createElement("div");
+  div.className = "message-item";
+  if (msg.status !== "answered") {
+    div.classList.add("unread");
+    unread++;
+  }
 
-    div.innerHTML = `
-      <p><strong>Message :</strong> ${msg.message}</p>
-      ${msg.status === "answered" ? `<p class="answer"><strong>Réponse :</strong> ${msg.answer}</p>` : `<p class="answer"><em>En attente de réponse...</em></p>`}
-      <p style="font-size:0.7rem;color:#9ca3af;">Envoyé le : ${new Date(msg.created_at).toLocaleString()}</p>
-    `;
+  // Message
+  const pMsg = document.createElement("p");
+  const strongMsg = document.createElement("strong");
+  strongMsg.textContent = "Message : ";
+  pMsg.appendChild(strongMsg);
+  pMsg.appendChild(document.createTextNode(msg.message));
+  div.appendChild(pMsg);
 
-    userMessagesList.appendChild(div);
-  });
+  // Réponse
+  const pAnswer = document.createElement("p");
+  pAnswer.className = "answer";
 
-  // pastille visible si au moins 1 message non lu
+  if (msg.status === "answered") {
+    const strongAns = document.createElement("strong");
+    strongAns.textContent = "Réponse : ";
+    pAnswer.appendChild(strongAns);
+    pAnswer.appendChild(document.createTextNode(msg.answer ?? ""));
+  } else {
+    pAnswer.textContent = "En attente de réponse…";
+    pAnswer.style.fontStyle = "italic";
+  }
+
+  div.appendChild(pAnswer);
+
+  // Date
+  const date = document.createElement("p");
+  date.className = "date";
+  date.textContent = "Envoyé le : " + new Date(msg.created_at).toLocaleString();
+  div.appendChild(date);
+
+  userMessagesList.appendChild(div);
+});
+
+
   profileBubbleDot.style.display = unread ? "block" : "none";
 }
 
