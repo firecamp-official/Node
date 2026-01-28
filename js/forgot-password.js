@@ -8,7 +8,7 @@ form.addEventListener("submit", async (e) => {
   const email = document.getElementById("email").value;
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: "https://firecamp-official.github.io/Node/reset-password.html"
+    redirectTo: "https://firecamp-official.github.io/Node/index.html"
   });
 
   if (error) {
@@ -19,3 +19,4 @@ form.addEventListener("submit", async (e) => {
     message.style.color = "lightgreen";
   }
 });
+
