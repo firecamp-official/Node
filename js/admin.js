@@ -366,30 +366,39 @@ async function loadMessages() {
     if (msg.flagged) div.classList.add("flagged-message");
 
     div.innerHTML = `
-    <p><strong>${msg.username}</strong> : ${msg.message}</p>
-    <p>Status : ${msg.status} | Cours : ${msg.course_id} | Envoyé le : ${new Date(msg.created_at).toLocaleString()}</p>
-    <p>Répondu par : ${msg.answeredBy}</p>
-    ${msg.status !== 'answered' ? `
-      <textarea class="answerInput" placeholder="Votre réponse..." ${msg.flagged ? "disabled" : ""}></textarea>
-      <div class="admin-actions">
-        <button class="danger deleteMsg" data-id="${msg.id}" ${msg.flagged ? "disabled" : ""}>Supprimer</button>
-        <button class="warning flagMsg" 
-                data-id="${msg.id}"
-                data-user="${msg.user_id}"
-                data-course="${msg.course_id}"
-                ${msg.flagged ? "disabled" : ""}>
-          Signaler
-        </button>
-      </div>
-      <button class="replyBtn" data-id="${msg.id}" ${msg.flagged ? "disabled" : ""}>Répondre</button>
-    ` : `<p><strong>Réponse :</strong> ${msg.answer}</p>`}
-  `;
+  <p><strong>${escapeHTML(msg.username)}</strong> : ${escapeHTML(msg.message)}</p>
+  <p>Status : ${msg.status} | Cours : ${msg.course_id} | Envoyé le : ${new Date(msg.created_at).toLocaleString()}</p>
+  <p>Répondu par : ${escapeHTML(msg.answeredBy)}</p>
+  ${msg.status !== 'answered' ? `
+    <textarea class="answerInput" placeholder="Votre réponse..."></textarea>
+    <div class="admin-actions">
+      <button class="danger deleteMsg" data-id="${msg.id}">Supprimer</button>
+      <button class="warning flagMsg"
+              data-id="${msg.id}"
+              data-user="${msg.user_id}"
+              data-course="${msg.course_id}">
+        Signaler
+      </button>
+    </div>
+    <button class="replyBtn" data-id="${msg.id}">Répondre</button>
+  ` : `<p><strong>Réponse :</strong> ${escapeHTML(msg.answer || "")}</p>`}
+`;
+
     messagesList.appendChild(div);
   });
 
 
   attachMessageActions(); // 👈 UN SEUL ENDROIT
 }
+function escapeHTML(str = "") {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function attachMessageActions() {
 
   // 💬 RÉPONDRE
