@@ -3,43 +3,38 @@ import { supabase } from "./supabase.js";
 const form = document.getElementById("newPasswordForm");
 const message = document.getElementById("message");
 
-// Récupère le token dans l'URL
-const urlParams = new URLSearchParams(window.location.hash.replace("#", "?"));
-const access_token = urlParams.get("access_token");
+// 1️⃣ Récupérer directement la session depuis l'URL
+async function initPasswordReset() {
+  const { data, error } = await supabase.auth.getSessionFromUrl({ storeSession: false });
+  // storeSession:false = ne pas stocker automatiquement, on gère manuellement
 
-if (!access_token) {
+  if (error || !data.session) {
     message.textContent = "Lien invalide ou expiré.";
     message.style.color = "red";
+    return null;
+  }
+
+  return data.session;
 }
 
 form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const password = document.getElementById("password").value;
+  e.preventDefault();
+  const password = document.getElementById("password").value;
 
-    // On utilise le token pour auth
-    // Au lieu de setAuth
-    const { error: sessionError } = await supabase.auth.setSession({
-        access_token
-    });
+  const session = await initPasswordReset();
+  if (!session) return;
 
-    if (sessionError) {
-        message.textContent = "Lien invalide ou expiré.";
-        message.style.color = "red";
-        return;
-    }
+  // 2️⃣ Mettre à jour le mot de passe
+  const { error } = await supabase.auth.updateUser({ password });
 
-
-    const { error } = await supabase.auth.updateUser({ password });
-
-
-    if (error) {
-        message.textContent = error.message;
-        message.style.color = "red";
-    } else {
-        message.textContent = "Mot de passe changé avec succès 🎉";
-        message.style.color = "lightgreen";
-        setTimeout(() => {
-            window.location.href = "../index.html";
-        }, 2000);
-    }
+  if (error) {
+    message.textContent = error.message;
+    message.style.color = "red";
+  } else {
+    message.textContent = "Mot de passe changé avec succès 🎉";
+    message.style.color = "lightgreen";
+    setTimeout(() => {
+      window.location.href = "../index.html"; // redirection login
+    }, 2000);
+  }
 });
