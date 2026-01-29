@@ -1,36 +1,44 @@
 import { supabase } from "./supabase.js";
 
 /* ======================================================
-   🔑 0️⃣ RECOVERY / RESET PASSWORD (DOIT ÊTRE TOUT EN HAUT)
+   🔑 0️⃣ RECOVERY / RESET PASSWORD (AU TOUT DÉBUT)
 ====================================================== */
 
 (async () => {
   const hash = window.location.hash;
 
-  // Supabase envoie les tokens via le hash #
-  if (hash && hash.includes("type=recovery")) {
-    const params = new URLSearchParams(hash.substring(1));
+  if (!hash || !hash.includes("type=recovery")) return;
 
-    const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
+  const params = new URLSearchParams(hash.substring(1));
+  const access_token = params.get("access_token");
+  const refresh_token = params.get("refresh_token");
 
-    if (access_token && refresh_token) {
-      const { error } = await supabase.auth.setSession({
-        access_token,
-        refresh_token
-      });
+  if (!access_token || !refresh_token) {
+    alert("Lien de réinitialisation invalide ou expiré.");
+    return;
+  }
 
-      if (error) {
-        alert("Lien de réinitialisation invalide ou expiré.");
-        return;
-      }
+  const { error } = await supabase.auth.setSession({
+    access_token,
+    refresh_token
+  });
 
-      // Nettoie l'URL (important)
-      history.replaceState(null, "", window.location.pathname);
+  if (error) {
+    alert("Lien de réinitialisation invalide ou expiré.");
+    return;
+  }
 
-      // 👉 Affiche ton UI de changement de mot de passe
-      document.getElementById("reset-password-modal")?.classList.add("show");
-    }
+  // Nettoyage URL (IMPORTANT)
+  history.replaceState(null, "", window.location.pathname);
+
+  // 👉 Affiche l’UI de changement de mot de passe
+  const recoveryBox = document.getElementById("recoveryBox");
+  const recoveryMessage = document.getElementById("recoveryMessage");
+
+  if (recoveryBox) recoveryBox.style.display = "block";
+  if (recoveryMessage) {
+    recoveryMessage.textContent = "🔐 Choisis ton nouveau mot de passe";
+    recoveryMessage.style.color = "#9be7ff";
   }
 })();
 
@@ -39,32 +47,37 @@ import { supabase } from "./supabase.js";
 ============================== */
 const loginBtn = document.getElementById("loginBtn");
 const registerBtn = document.getElementById("registerBtn");
+const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+const resetPasswordBtn = document.getElementById("resetPasswordBtn");
 
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const usernameInput = document.getElementById("username");
+const newPasswordInput = document.getElementById("newPassword");
 const termsCheckbox = document.getElementById("terms");
 
 // Honeypot invisible
 const honeypotInput = document.querySelector('input[name="website"]');
 
-// Anti-robot maison
+/* ==============================
+   ANTI-BOT MAISON
+============================== */
 let humanScore = 0;
 let startTime = Date.now();
 
-document.addEventListener('mousemove', () => humanScore++);
-document.addEventListener('scroll', () => humanScore++);
-document.addEventListener('keydown', () => humanScore++);
+document.addEventListener("mousemove", () => humanScore++);
+document.addEventListener("scroll", () => humanScore++);
+document.addEventListener("keydown", () => humanScore++);
 
 /* ==============================
    UTILITAIRES
 ============================== */
 function validateFields(fields) {
-  return fields.every(f => f.value.trim());
+  return fields.every(f => f && f.value.trim());
 }
 
 function checkHoneypot() {
-  return honeypotInput && honeypotInput.value !== '';
+  return honeypotInput && honeypotInput.value !== "";
 }
 
 function checkHumanScore(minScore = 5, minTimeMs = 800) {
@@ -72,12 +85,33 @@ function checkHumanScore(minScore = 5, minTimeMs = 800) {
 }
 
 /* ==============================
+   🔁 MOT DE PASSE OUBLIÉ (EMAIL)
+============================== */
+forgotPasswordLink?.addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  const email = emailInput.value.trim();
+  if (!email) {
+    alert("Entre ton email pour recevoir le lien.");
+    return;
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: "https://firecamp-official.github.io/Node/index.html"
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("📩 Email de réinitialisation envoyé !");
+});
+
+/* ==============================
    CONNEXION
 ============================== */
-loginBtn.addEventListener("click", async () => {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-
+loginBtn?.addEventListener("click", async () => {
   if (!validateFields([emailInput, passwordInput])) {
     alert("Veuillez remplir tous les champs.");
     return;
@@ -88,7 +122,10 @@ loginBtn.addEventListener("click", async () => {
     return;
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: emailInput.value,
+    password: passwordInput.value
+  });
 
   if (error) {
     alert(error.message);
@@ -97,13 +134,13 @@ loginBtn.addEventListener("click", async () => {
 
   const userId = data.user.id;
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("restricted")
     .eq("id", userId)
     .single();
 
-  if (profileError || profile?.restricted) {
+  if (profile?.restricted) {
     alert("Compte restreint.");
     await supabase.auth.signOut();
     return;
@@ -115,11 +152,7 @@ loginBtn.addEventListener("click", async () => {
 /* ==============================
    INSCRIPTION
 ============================== */
-registerBtn.addEventListener("click", async () => {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-  const username = usernameInput.value;
-
+registerBtn?.addEventListener("click", async () => {
   if (!termsCheckbox.checked) {
     alert("Vous devez accepter les conditions.");
     return;
@@ -135,23 +168,20 @@ registerBtn.addEventListener("click", async () => {
     return;
   }
 
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email: emailInput.value,
+    password: passwordInput.value
+  });
 
   if (error) {
     alert(error.message);
     return;
   }
 
-  const userId = data.user.id;
-
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .insert({ id: userId, username });
-
-  if (profileError) {
-    alert(profileError.message);
-    return;
-  }
+  await supabase.from("profiles").insert({
+    id: data.user.id,
+    username: usernameInput.value
+  });
 
   window.location.href = "dashboard.html";
 });
@@ -159,11 +189,11 @@ registerBtn.addEventListener("click", async () => {
 /* ==============================
    🔐 VALIDATION NOUVEAU MOT DE PASSE
 ============================== */
-document.getElementById("saveNewPassword")?.addEventListener("click", async () => {
-  const newPassword = document.getElementById("newPassword")?.value;
+resetPasswordBtn?.addEventListener("click", async () => {
+  const newPassword = newPasswordInput?.value;
 
   if (!newPassword || newPassword.length < 6) {
-    alert("Mot de passe trop court.");
+    alert("Mot de passe trop court (6 caractères min).");
     return;
   }
 
@@ -176,7 +206,7 @@ document.getElementById("saveNewPassword")?.addEventListener("click", async () =
     return;
   }
 
-  alert("Mot de passe changé avec succès 🎉");
+  alert("✅ Mot de passe changé avec succès !");
   window.location.href = "dashboard.html";
 });
 
@@ -184,17 +214,17 @@ document.getElementById("saveNewPassword")?.addEventListener("click", async () =
    USER COUNT
 ============================== */
 async function loadUserCount() {
-  const el = document.getElementById('userCount');
+  const el = document.getElementById("userCount");
   if (!el) return;
 
   try {
     const { count } = await supabase
-      .from('public_profiles_count')
-      .select('created_at', { count: 'exact', head: true });
+      .from("public_profiles_count")
+      .select("created_at", { count: "exact", head: true });
 
     el.textContent = `${count} membres inscrits`;
   } catch {
-    el.textContent = 'Membres : —';
+    el.textContent = "Membres : —";
   }
 }
 
