@@ -3,7 +3,6 @@ import { supabase } from "./supabase.js";
 /* ======================================================
    🔑 0️⃣ RECOVERY / RESET PASSWORD (AU TOUT DÉBUT)
 ====================================================== */
-
 (async () => {
   const hash = window.location.hash;
 
@@ -14,7 +13,8 @@ import { supabase } from "./supabase.js";
   const refresh_token = params.get("refresh_token");
 
   if (!access_token || !refresh_token) {
-    alert("Lien de réinitialisation invalide ou expiré.");
+    document.getElementById("recoveryMessage").textContent =
+      "🔴 Lien de réinitialisation invalide ou expiré.";
     return;
   }
 
@@ -24,17 +24,17 @@ import { supabase } from "./supabase.js";
   });
 
   if (error) {
-    alert("Lien de réinitialisation invalide ou expiré.");
+    document.getElementById("recoveryMessage").textContent =
+      "🔴 Lien invalide ou expiré. Demande un nouveau lien.";
     return;
   }
 
-  // Nettoyage URL (IMPORTANT)
+  // Nettoyage URL
   history.replaceState(null, "", window.location.pathname);
 
-  // 👉 Affiche l’UI de changement de mot de passe
+  // Affiche la box et message
   const recoveryBox = document.getElementById("recoveryBox");
   const recoveryMessage = document.getElementById("recoveryMessage");
-
   if (recoveryBox) recoveryBox.style.display = "block";
   if (recoveryMessage) {
     recoveryMessage.textContent = "🔐 Choisis ton nouveau mot de passe";
@@ -43,7 +43,7 @@ import { supabase } from "./supabase.js";
 })();
 
 /* ==============================
-   ELEMENTS DU FORMULAIRE
+   ÉLÉMENTS DU FORMULAIRE
 ============================== */
 const loginBtn = document.getElementById("loginBtn");
 const registerBtn = document.getElementById("registerBtn");
@@ -85,7 +85,7 @@ function checkHumanScore(minScore = 5, minTimeMs = 800) {
 }
 
 /* ==============================
-   🔁 MOT DE PASSE OUBLIÉ (EMAIL)
+   🔁 MOT DE PASSE OUBLIÉ
 ============================== */
 forgotPasswordLink?.addEventListener("click", async (e) => {
   e.preventDefault();
