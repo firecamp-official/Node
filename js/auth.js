@@ -214,18 +214,19 @@ resetPasswordBtn?.addEventListener("click", async () => {
    USER COUNT
 ============================== */
 async function loadUserCount() {
-  const el = document.getElementById("userCount");
+  const el = document.getElementById('userCount');
   if (!el) return;
 
   try {
-    const { count } = await supabase
-      .from("public_profiles_count")
-      .select("created_at", { count: "exact", head: true });
+    const { data, error } = await supabase
+      .rpc('get_total_members_count');
 
-    el.textContent = `${count} membres inscrits`;
-  } catch {
-    el.textContent = "Membres : —";
+    if (error) throw error;
+
+    el.textContent = `${data} membres inscrits`;
+  } catch (err) {
+    console.error('loadUserCount', err);
+    el.textContent = 'Membres : —';
   }
 }
-
 loadUserCount();
