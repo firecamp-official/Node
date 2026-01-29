@@ -1,5 +1,39 @@
 import { supabase } from "./supabase.js";
 
+/* ======================================================
+   🔑 0️⃣ RECOVERY / RESET PASSWORD (DOIT ÊTRE TOUT EN HAUT)
+====================================================== */
+
+(async () => {
+  const hash = window.location.hash;
+
+  // Supabase envoie les tokens via le hash #
+  if (hash && hash.includes("type=recovery")) {
+    const params = new URLSearchParams(hash.substring(1));
+
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
+
+    if (access_token && refresh_token) {
+      const { error } = await supabase.auth.setSession({
+        access_token,
+        refresh_token
+      });
+
+      if (error) {
+        alert("Lien de réinitialisation invalide ou expiré.");
+        return;
+      }
+
+      // Nettoie l'URL (important)
+      history.replaceState(null, "", window.location.pathname);
+
+      // 👉 Affiche ton UI de changement de mot de passe
+      document.getElementById("reset-password-modal")?.classList.add("show");
+    }
+  }
+})();
+
 /* ==============================
    ELEMENTS DU FORMULAIRE
 ============================== */
@@ -14,40 +48,29 @@ const termsCheckbox = document.getElementById("terms");
 // Honeypot invisible
 const honeypotInput = document.querySelector('input[name="website"]');
 
-// Anti-robot maison : score basé sur mouvements souris, scroll et temps
+// Anti-robot maison
 let humanScore = 0;
 let startTime = Date.now();
 
-// Événements pour le score humain
-document.addEventListener('mousemove', () => humanScore += 1);
-document.addEventListener('scroll', () => humanScore += 1);
-document.addEventListener('keydown', () => humanScore += 1);
+document.addEventListener('mousemove', () => humanScore++);
+document.addEventListener('scroll', () => humanScore++);
+document.addEventListener('keydown', () => humanScore++);
 
 /* ==============================
    UTILITAIRES
 ============================== */
-// Vérifie que tous les champs requis sont remplis
 function validateFields(fields) {
-  for (let field of fields) {
-    if (!field.value.trim()) return false;
-  }
-  return true;
+  return fields.every(f => f.value.trim());
 }
 
-// Vérifie le honeypot
 function checkHoneypot() {
   return honeypotInput && honeypotInput.value !== '';
 }
 
-// Vérifie le score humain minimum
 function checkHumanScore(minScore = 5, minTimeMs = 800) {
-  const elapsed = Date.now() - startTime;
-  return humanScore >= minScore && elapsed >= minTimeMs;
+  return humanScore >= minScore && (Date.now() - startTime) >= minTimeMs;
 }
 
-/* ==============================
-   CONNEXION
-============================== */
 /* ==============================
    CONNEXION
 ============================== */
@@ -60,13 +83,8 @@ loginBtn.addEventListener("click", async () => {
     return;
   }
 
-  if (checkHoneypot()) {
-    alert("Bot détecté !");
-    return;
-  }
-
-  if (!checkHumanScore()) {
-    alert("Action suspecte détectée. Veuillez réessayer lentement et normalement.");
+  if (checkHoneypot() || !checkHumanScore()) {
+    alert("Action suspecte détectée.");
     return;
   }
 
@@ -79,33 +97,23 @@ loginBtn.addEventListener("click", async () => {
 
   const userId = data.user.id;
 
-  // 🔒 Vérifie si le profil est restreint
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("restricted")
     .eq("id", userId)
     .single();
 
-  if (profileError) {
-    console.error(profileError);
-    alert("Erreur lors de la vérification du profil.");
-    return;
-  }
-
-  if (profile?.restricted) {
-    alert("Votre compte a été restreint par un administrateur. Contactez l'équipe pour plus d'informations.");
-    // Déconnecte l'utilisateur immédiatement
+  if (profileError || profile?.restricted) {
+    alert("Compte restreint.");
     await supabase.auth.signOut();
     return;
   }
 
-  // tout va bien → redirection
   window.location.href = "dashboard.html";
 });
 
-
 /* ==============================
-   INSCRIPTION + PROFILE
+   INSCRIPTION
 ============================== */
 registerBtn.addEventListener("click", async () => {
   const email = emailInput.value;
@@ -113,7 +121,7 @@ registerBtn.addEventListener("click", async () => {
   const username = usernameInput.value;
 
   if (!termsCheckbox.checked) {
-    alert("Vous devez accepter les Conditions d'Utilisation et Mentions Légales.");
+    alert("Vous devez accepter les conditions.");
     return;
   }
 
@@ -122,84 +130,72 @@ registerBtn.addEventListener("click", async () => {
     return;
   }
 
-  if (checkHoneypot()) {
-    alert("Bot détecté !");
+  if (checkHoneypot() || !checkHumanScore()) {
+    alert("Action suspecte détectée.");
     return;
   }
 
-  if (!checkHumanScore()) {
-    alert("Action suspecte détectée. Veuillez réessayer lentement et normalement.");
+  const { data, error } = await supabase.auth.signUp({ email, password });
+
+  if (error) {
+    alert(error.message);
     return;
   }
 
+  const userId = data.user.id;
 
-  try {
-    // Création du compte Supabase
-    const { data, error } = await supabase.auth.signUp({ email, password });
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .insert({ id: userId, username });
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    const userId = data.user.id;
-
-    // Création du profil lié
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert({ id: userId, username });
-
-      
-    if (profileError) {
-      alert("Erreur création profil : " + profileError.message);
-      return;
-    }
-
-    alert("Inscription réussie ! Redirection vers votre tableau de bord...");
-    // update count briefly before redirect (best-effort)
-    try { await loadUserCount(); } catch (e) { /* ignore */ }
-    window.location.href = "dashboard.html";
-
-  } catch (err) {
-    console.error(err);
-    alert("Une erreur est survenue, veuillez réessayer.");
+  if (profileError) {
+    alert(profileError.message);
+    return;
   }
+
+  window.location.href = "dashboard.html";
 });
 
 /* ==============================
-   OPTION : RESET FORMULAIRE
+   🔐 VALIDATION NOUVEAU MOT DE PASSE
 ============================== */
-function resetForm() {
-  emailInput.value = '';
-  passwordInput.value = '';
-  usernameInput.value = '';
-  termsCheckbox.checked = false;
-  if (honeypotInput) honeypotInput.value = '';
-  humanScore = 0;
-  startTime = Date.now();
-}
+document.getElementById("saveNewPassword")?.addEventListener("click", async () => {
+  const newPassword = document.getElementById("newPassword")?.value;
+
+  if (!newPassword || newPassword.length < 6) {
+    alert("Mot de passe trop court.");
+    return;
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Mot de passe changé avec succès 🎉");
+  window.location.href = "dashboard.html";
+});
 
 /* ==============================
-   USER COUNT (INDEX)
-   Fetch total number of profiles and display on the auth page
+   USER COUNT
 ============================== */
 async function loadUserCount() {
   const el = document.getElementById('userCount');
   if (!el) return;
 
   try {
-    const { count, error } = await supabase
-      .from('public_profiles_count')  // <-- attention à bien pointer sur la view
+    const { count } = await supabase
+      .from('public_profiles_count')
       .select('created_at', { count: 'exact', head: true });
 
-    if (error) throw error;
-
     el.textContent = `${count} membres inscrits`;
-  } catch (err) {
-    console.error('loadUserCount', err);
+  } catch {
     el.textContent = 'Membres : —';
   }
 }
 
-// charger au load
 loadUserCount();
