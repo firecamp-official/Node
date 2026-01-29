@@ -25,57 +25,57 @@
       display: inline-block;
       font-weight: 600;
     }
+
+    /* Modale reset mot de passe */
+    #recoveryBox {
+      display: none;
+      margin-top: 20px;
+    }
+
+    #recoveryMessage {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: #7c3aed;
+    }
   </style>
 </head>
 
 <body class="center">
 
+  <div class="auth-layout">
 
-<div class="auth-layout">
+    <!-- CONNEXION / INSCRIPTION -->
+    <div class="auth-card">
+      <div id="userCount" class="user-count">Chargement des membres…</div>
 
-  <div class="auth-card">
-    <div id="userCount" class="user-count">Chargement des membres…</div>
+      <input id="email" placeholder="Email" type="email">
+      <input id="password" type="password" placeholder="Mot de passe">
+      <input id="username" placeholder="Pseudo (inscription)">
 
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Mot de passe">
-    <input id="username" placeholder="Pseudo (inscription)">
+      <!-- Checkbox acceptation -->
+      <div class="checkbox-group">
+        <input type="checkbox" id="terms">
+        <label for="terms" class="accept-section">
+          J’ai lu et j’accepte les <a href="conditions-utilisations.html" target="_blank">Conditions d’Utilisation</a>
+          et les <a href="mentions-legales.html" target="_blank">Mentions Légales</a>
+        </label>
+      </div>
 
-    <div class="checkbox-group">
-      <input type="checkbox" id="terms">
-      <label for="terms">
-        J’accepte les <a href="conditions-utilisations.html" target="_blank">CGU</a>
-      </label>
+      <button id="loginBtn">Connexion</button>
+      <button id="registerBtn">Inscription</button>
+
+      <!-- RECOVERY PASSWORD -->
+      <div id="recoveryBox">
+        <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
+        <button id="resetPasswordBtn">Changer le mot de passe</button>
+      </div>
+
+      <p id="recoveryMessage"></p>
+
+      <p style="margin-top:12px;">
+        <a href="#" id="forgotPasswordLink" style="color:#7c3aed;">Mot de passe oublié ?</a>
+      </p>
     </div>
-
-    <button id="loginBtn">Connexion</button>
-    <button id="registerBtn">Inscription</button>
-
-    <!-- 🔐 RECOVERY UI -->
-    <div id="recoveryBox" style="display:none; margin-top:20px;">
-      <input
-        type="password"
-        id="newPassword"
-        placeholder="Nouveau mot de passe"
-      />
-      <button id="resetPasswordBtn">
-        Changer le mot de passe
-      </button>
-    </div>
-
-    <p id="recoveryMessage" style="margin-top:10px;"></p>
-
-    <p style="margin-top:12px;">
-      <a href="#" id="forgotPasswordLink" style="color:#7c3aed;">
-        Mot de passe oublié ?
-      </a>
-    </p>
-  </div>
-
-</div>
-
-
-
-
 
     <!-- TEXTE DROITE -->
     <div class="auth-info">
@@ -98,6 +98,7 @@
         Pensé par un lycéen, pour les lycéens.
       </p>
     </div>
+
     <!-- Advanced "Dernière mise à jour" badge -->
     <div class="update-container">
       <div class="update-badge feature">
@@ -114,9 +115,11 @@
         🔹 Amélioration de la réactivité sur mobile.
       </div>
     </div>
+
   </div>
 
+  <!-- SCRIPT -->
   <script type="module" src="./js/auth.js"></script>
-</body>
 
+</body>
 </html>
