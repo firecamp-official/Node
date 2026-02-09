@@ -492,5 +492,3 @@ function attachMessageActions() {
 
 // Charger une première fois au lancement
 await loadMessages();
-
-
