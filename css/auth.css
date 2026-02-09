@@ -1,7 +1,7 @@
 /* =======================
    BASE
 ======================= */
-
+ 
 :root {
   --violet: #7c3aed;
   --cyan: #22d3ee;
@@ -431,5 +431,6 @@ body {
   width: 50%;
   margin-bottom: 20px;
 }
+
 
 
