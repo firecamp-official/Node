@@ -15,107 +15,130 @@
   <link rel="icon" type="image/png" sizes="192x192" href="css/android-chrome-192x192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="css/android-chrome-512x512.png">
   <link rel="stylesheet" href="css/auth.css">
-  <style>
-    .user-count {
-      margin-top: 10px;
-      font-size: 0.95rem;
-      color: #9be7ff;
-      background: rgba(124, 58, 237, 0.06);
-      padding: 6px 10px;
-      border-radius: 999px;
-      display: inline-block;
-      font-weight: 600;
-    }
-
-    /* Modale reset mot de passe */
-    #recoveryBox {
-      display: none;
-      margin-top: 20px;
-    }
-
-    #recoveryMessage {
-      margin-top: 10px;
-      font-size: 0.95rem;
-      color: #7c3aed;
-    }
-  </style>
 </head>
 
-<body class="center">
+<body>
+  
+  <!-- BACKGROUND FIXE -->
+  <div class="auth-bg"></div>
 
-  <div class="auth-layout">
+  <!-- WRAPPER PRINCIPAL -->
+  <div class="page-wrapper">
 
-    <!-- CONNEXION / INSCRIPTION -->
-    <div class="auth-card">
-      <div id="userCount" class="user-count">Chargement des membres…</div>
+    <!-- SECTION FORMULAIRE -->
+    <section class="auth-section">
+      <div class="auth-card">
+        <div id="userCount" class="user-count">Chargement des membres…</div>
 
-      <input id="email" placeholder="Email" type="email">
-      <input id="password" type="password" placeholder="Mot de passe">
-      <input id="username" placeholder="Pseudo (inscription)">
+        <input id="email" placeholder="Email" type="email">
+        <input id="password" type="password" placeholder="Mot de passe">
+        <input id="username" placeholder="Pseudo (inscription)">
 
-      <!-- Checkbox acceptation -->
-      <div class="checkbox-group">
-        <input type="checkbox" id="terms">
-        <label for="terms" class="accept-section">
-          J’ai lu et j’accepte les <a href="conditions-utilisations.html" target="_blank">Conditions d’Utilisation</a>
-          et les <a href="mentions-legales.html" target="_blank">Mentions Légales</a>
-        </label>
+        <!-- Checkbox acceptation -->
+        <div class="checkbox-group">
+          <input type="checkbox" id="terms">
+          <label for="terms" class="accept-section">
+            J'ai lu et j'accepte les <a href="conditions-utilisations.html" target="_blank">Conditions d'Utilisation</a>
+            et les <a href="mentions-legales.html" target="_blank">Mentions Légales</a>
+          </label>
+        </div>
+
+        <button id="loginBtn">Connexion</button>
+        <button id="registerBtn">Inscription</button>
+
+        <!-- RECOVERY PASSWORD -->
+        <div id="recoveryBox" style="display: none; margin-top: 20px;">
+          <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
+          <button id="resetPasswordBtn">Changer le mot de passe</button>
+        </div>
+
+        <p id="recoveryMessage" style="margin-top: 10px; font-size: 0.95rem; color: #7c3aed;"></p>
+
+        <p style="margin-top:12px;">
+          <a href="#" id="forgotPasswordLink" style="color:#7c3aed;">Mot de passe oublié ?</a>
+        </p>
       </div>
+    </section>
 
-      <button id="loginBtn">Connexion</button>
-      <button id="registerBtn">Inscription</button>
+    <!-- SECTION INFORMATIVE -->
+    <section class="info-section">
+      <div class="info-container">
+        
+        <!-- Introduction -->
+        <div class="info-hero">
+          <img src="css/node_logo.png">
+          <h2 class="info-title">Node, c'est quoi ?</h2>
+          <p class="info-lead">
+            Node est une plateforme d'entraide pensée par et pour les lycéens. Ici, tu peux poser tes questions librement, 
+            demander de l'aide sur un cours que tu n'as pas compris, un exercice qui bloque ou une notion que tu veux vraiment maîtriser — 
+            sans jugement, sans pression.
+          </p>
+          <p class="info-lead">
+            L'idée est simple : on avance mieux ensemble. Chaque élève a des points forts, et Node permet de les mettre au service des autres, 
+            tout en progressant soi-même.
+          </p>
+        </div>
 
-      <!-- RECOVERY PASSWORD -->
-      <div id="recoveryBox">
-        <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
-        <button id="resetPasswordBtn">Changer le mot de passe</button>
+        <!-- Card 1: Matières -->
+        <div class="info-block">
+          <div class="info-block-image">
+            <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80" alt="Matières" loading="lazy">
+          </div>
+          <div class="info-block-content">
+            <div class="info-icon">📚</div>
+            <h3>Quelles matières sont présentes ?</h3>
+            <p>
+              Node couvre les principales matières du lycée, du tronc commun aux spécialités : mathématiques, physique-chimie, 
+              SVT, SES, NSI, français, philosophie, histoire-géographie, langues, et plus encore.
+            </p>
+            <p>
+              Que tu sois en seconde, première ou terminale, tu peux trouver de l'aide adaptée à ton niveau et à ton programme, 
+              ou au contraire aider quelqu'un sur un sujet que tu maîtrises bien.
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 2: Pourquoi Node -->
+        <div class="info-block reverse">
+          <div class="info-block-image">
+            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" alt="Entraide" loading="lazy">
+          </div>
+          <div class="info-block-content">
+            <div class="info-icon">💡</div>
+            <h3>Pourquoi utiliser Node ?</h3>
+            <p>
+              Contrairement aux groupes de discussion classiques, Node est conçu pour que les questions soient claires, visibles et réellement utiles. 
+              Les échanges sont centrés sur l'entraide scolaire, sans messages perdus ni réponses hors sujet.
+            </p>
+            <p>
+              Tu peux prendre le temps de comprendre, poser des questions précises, recevoir des explications détaillées, et revenir plus tard pour aider à ton tour.
+            </p>
+            <p>
+              En aidant les autres, tu renforces aussi ta propre compréhension — expliquer, c'est souvent la meilleure façon d'apprendre.
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 3: Communauté -->
+        <div class="info-block">
+          <div class="info-block-image">
+            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80" alt="Communauté" loading="lazy">
+          </div>
+          <div class="info-block-content">
+            <div class="info-icon">🤝</div>
+            <h3>Une communauté, pas juste un site</h3>
+            <p>
+              Node, ce n'est pas seulement un outil : c'est une communauté de lycéens motivés, bienveillants et solidaires. 
+              Ici, chacun peut progresser à son rythme, gagner en confiance, et ne plus rester bloqué seul devant un exercice ou un chapitre incompris.
+            </p>
+            <p>
+              Rejoins-nous et fais partie d'une aventure collective où l'entraide et la réussite vont de pair.
+            </p>
+          </div>
+        </div>
+
       </div>
-
-      <p id="recoveryMessage"></p>
-
-      <p style="margin-top:12px;">
-        <a href="#" id="forgotPasswordLink" style="color:#7c3aed;">Mot de passe oublié ?</a>
-      </p>
-    </div>
-
-    <!-- TEXTE DROITE -->
-    <div class="auth-info">
-      <img src="css/node_logo.png" alt="Logo Node" class="auth-logo">
-      <h2>La plateforme d’entraide entre lycéens</h2>
-
-      <p>
-        <strong>Partage tes cours</strong>, aide les autres et progresse
-        dans un espace pensé pour les élèves.
-      </p>
-
-      <ul>
-        <li>Cours classés par niveau</li>
-        <li>Entraide entre lycéens</li>
-        <li>Comptes sécurisés</li>
-        <li>Simple, rapide, moderne</li>
-      </ul>
-
-      <p class="auth-highlight">
-        Pensé par un lycéen, pour les lycéens.
-      </p>
-    </div>
-
-    <!-- Advanced "Dernière mise à jour" badge -->
-    <div class="update-container">
-      <div class="update-badge feature">
-        <svg class="update-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <path fill="currentColor"
-            d="M12 1a11 11 0 1 0 11 11A11 11 0 0 0 12 1zm0 20a9 9 0 1 1 9-9 9 9 0 0 1-9 9zm.5-9V6h-1v7h6v-1z" />
-        </svg>
-        <span class="update-text">Dernière mise à jour : 23/01/2026 à 15:15</span>
-      </div>
-      <div class="update-details">
-        🔹 Ajout de la feature <strong>“À revoir / À apprendre”</strong> pour permettre aux élèves de marquer leurs
-        cours favoris.<br>
-        🔹 Correction de bugs mineurs sur les espaces utilisateur et administrateur.<br>
-        🔹 Amélioration de la réactivité sur mobile.
-      </div>
-    </div>
+    </section>
 
   </div>
 
