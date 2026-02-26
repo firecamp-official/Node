@@ -15,6 +15,49 @@
   <link rel="icon" type="image/png" sizes="192x192" href="css/android-chrome-192x192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="css/android-chrome-512x512.png">
   <link rel="stylesheet" href="css/auth.css">
+
+  <style>
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(124, 58, 237, 0.15);
+    }
+    .btn-google {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 16px;
+      background: transparent;
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-google:hover {
+      background: rgba(124, 58, 237, 0.08);
+      border-color: rgba(124, 58, 237, 0.5);
+    }
+    .btn-google svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+  </style>
 </head>
 
 <body>
@@ -46,6 +89,20 @@
         <button id="loginBtn">Connexion</button>
         <button id="registerBtn">Inscription</button>
 
+        <!-- SÉPARATEUR -->
+        <div class="divider">ou</div>
+
+        <!-- BOUTON GOOGLE -->
+        <button id="googleBtn" class="btn-google">
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#EA4335" d="M24 9.5c3.14 0 5.95 1.08 8.17 2.84l6.08-6.08C34.62 3.09 29.6 1 24 1 14.82 1 7.08 6.54 3.72 14.3l7.09 5.51C12.5 13.72 17.77 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.52 24.5c0-1.64-.15-3.22-.42-4.75H24v9h12.67c-.55 2.97-2.18 5.48-4.63 7.17l7.1 5.52C43.18 37.27 46.52 31.32 46.52 24.5z"/>
+            <path fill="#FBBC05" d="M10.81 28.19A14.52 14.52 0 0 1 9.5 24c0-1.45.25-2.85.69-4.17l-7.09-5.51A23.93 23.93 0 0 0 0 24c0 3.87.93 7.53 2.56 10.76l8.25-6.57z"/>
+            <path fill="#34A853" d="M24 47c5.6 0 10.3-1.85 13.73-5.02l-7.1-5.52C28.9 37.88 26.6 38.5 24 38.5c-6.23 0-11.5-4.22-13.19-9.81l-8.25 6.57C6.17 42.6 14.5 47 24 47z"/>
+          </svg>
+          Continuer avec Google
+        </button>
+
         <!-- RECOVERY PASSWORD -->
         <div id="recoveryBox" style="display: none; margin-top: 20px;">
           <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
@@ -64,7 +121,6 @@
     <section class="info-section">
       <div class="info-container">
         
-        <!-- Introduction -->
         <div class="info-hero">
           <img src="css/node_logo.png" class="logo">
           <h2 class="info-title">Node, c'est quoi ?</h2>
@@ -79,7 +135,6 @@
           </p>
         </div>
 
-        <!-- Card 1: Matières -->
         <div class="info-block">
           <div class="info-block-image">
             <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80" alt="Matières" loading="lazy">
@@ -98,7 +153,6 @@
           </div>
         </div>
 
-        <!-- Card 2: Pourquoi Node -->
         <div class="info-block reverse">
           <div class="info-block-image">
             <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" alt="Entraide" loading="lazy">
@@ -119,7 +173,6 @@
           </div>
         </div>
 
-        <!-- Card 3: Communauté -->
         <div class="info-block">
           <div class="info-block-image">
             <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80" alt="Communauté" loading="lazy">
@@ -142,7 +195,6 @@
 
   </div>
 
-  <!-- SCRIPT -->
   <script type="module" src="./js/auth.js"></script>
 
 </body>
