@@ -47,6 +47,7 @@ import { supabase } from "./supabase.js";
 ============================== */
 const loginBtn = document.getElementById("loginBtn");
 const registerBtn = document.getElementById("registerBtn");
+const googleBtn = document.getElementById("googleBtn");
 const forgotPasswordLink = document.getElementById("forgotPasswordLink");
 const resetPasswordBtn = document.getElementById("resetPasswordBtn");
 
@@ -211,6 +212,50 @@ resetPasswordBtn?.addEventListener("click", async () => {
 });
 
 /* ==============================
+   🔵 CONNEXION GOOGLE
+============================== */
+googleBtn?.addEventListener("click", async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: "https://firecamp-official.github.io/Node/dashboard.html"
+    }
+  });
+
+  if (error) {
+    alert("Erreur Google : " + error.message);
+  }
+});
+
+/* ==============================
+   CRÉATION PROFIL GOOGLE (si nouveau)
+============================== */
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === "SIGNED_IN" && session?.user) {
+    const user = session.user;
+
+    // Vérifie si le profil existe déjà
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    if (!existing) {
+      // Nouveau user Google → crée le profil avec son nom Google comme pseudo
+      const username = user.user_metadata?.full_name
+        || user.user_metadata?.name
+        || user.email.split("@")[0];
+
+      await supabase.from("profiles").insert({
+        id: user.id,
+        username
+      });
+    }
+  }
+});
+
+/* ==============================
    USER COUNT
 ============================== */
 async function loadUserCount() {
@@ -230,4 +275,3 @@ async function loadUserCount() {
   }
 }
 loadUserCount();
-
