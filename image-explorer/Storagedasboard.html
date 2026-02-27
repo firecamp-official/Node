@@ -2,36 +2,509 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Explorateur d’images</title>
+  <title>Médiathèque – Node</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ========================
+       RESET & BASE
+    ======================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <link rel="stylesheet" href="css/style.css">
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #111118;
+      --surface2:  #18181f;
+      --border:    rgba(255,255,255,0.07);
+      --border-hi: rgba(255,255,255,0.14);
+      --gold:      #c9a84c;
+      --gold-dim:  rgba(201,168,76,0.15);
+      --text:      #e8e6e1;
+      --muted:     #6b6a6e;
+      --radius:    16px;
+      --radius-sm: 10px;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ========================
+       NOISE TEXTURE OVERLAY
+    ======================== */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ========================
+       LAYOUT
+    ======================== */
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 1040px);
+      padding: 0 2rem 4rem;
+    }
+
+    /* ========================
+       TOPBAR
+    ======================== */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2rem 0 3rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+
+    .topbar-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .topbar-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    .topbar h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+
+    .topbar-back {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    .topbar-back:hover { color: var(--text); border-color: var(--border-hi); }
+
+    /* ========================
+       UPLOAD ZONE
+    ======================== */
+    .upload-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 3rem;
+      border: 1px dashed var(--border-hi);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      transition: border-color 0.25s, background 0.25s;
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--gold);
+      background: var(--surface2);
+    }
+
+    .upload-icon {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      transition: transform 0.25s;
+    }
+
+    .upload-zone:hover .upload-icon { transform: scale(1.08); }
+
+    .upload-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .upload-sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* ========================
+       RESULT / PREVIEW
+    ======================== */
+    .result-card {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 2.5rem;
+      animation: slideUp 0.35s ease forwards;
+    }
+
+    .result-card.visible { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-preview {
+      width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      background: #0e0e14;
+      display: block;
+    }
+
+    .result-footer {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 1rem 1.2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .result-footer input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--muted);
+      font-family: 'DM Sans', monospace;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn-copy {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.55rem 1rem;
+      background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: var(--radius-sm);
+      color: var(--gold);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-copy:hover { background: rgba(201,168,76,0.22); transform: scale(1.02); }
+    .btn-copy.copied { color: #4ade80; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.08); }
+
+    /* ========================
+       SECTION HEADER
+    ======================== */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 1.4rem;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--text);
+    }
+
+    .image-count {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* ========================
+       IMAGE GRID
+    ======================== */
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .img-tile {
+      position: relative;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      aspect-ratio: 1;
+      cursor: pointer;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: border-color 0.25s;
+      animation: fadeIn 0.4s ease both;
+    }
+
+    .img-tile:hover { border-color: var(--border-hi); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .img-tile img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+
+    .img-tile:hover img { transform: scale(1.06); }
+
+    .img-tile-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.25s;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0.8rem;
+      gap: 0.4rem;
+    }
+
+    .img-tile:hover .img-tile-overlay { opacity: 1; }
+
+    .tile-btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+      padding: 0.45rem 0.7rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.15s;
+      border: none;
+    }
+
+    .tile-btn:hover { transform: scale(1.03); }
+
+    .tile-btn.copy-tile {
+      background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold);
+    }
+
+    .tile-btn.delete-tile {
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #f87171;
+    }
+
+    /* ========================
+       EMPTY STATE
+    ======================== */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 3rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+      text-align: center;
+    }
+
+    .empty-state-icon { font-size: 2.5rem; opacity: 0.4; }
+
+    /* ========================
+       LIGHTBOX
+    ======================== */
+    .lightbox {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      padding: 2rem;
+    }
+
+    .lightbox.open { opacity: 1; pointer-events: all; }
+
+    .lightbox img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: var(--radius);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.7);
+    }
+
+    .lightbox-url {
+      display: flex; align-items: center; gap: 0.8rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.6rem 0.6rem 0.6rem 1.2rem;
+      max-width: 540px; width: 100%;
+    }
+
+    .lightbox-url span {
+      flex: 1;
+      font-size: 0.78rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 1.5rem; right: 1.5rem;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .lightbox-close:hover { background: var(--surface2); }
+
+    /* ========================
+       TOAST
+    ======================== */
+    .toast {
+      position: fixed;
+      bottom: 2rem; right: 2rem;
+      background: var(--surface2);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius-sm);
+      padding: 0.8rem 1.2rem;
+      font-size: 0.85rem;
+      color: var(--text);
+      display: flex; align-items: center; gap: 0.5rem;
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      z-index: 2000;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ========================
+       LOADER SKELETON
+    ======================== */
+    .skeleton {
+      border-radius: var(--radius-sm);
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      aspect-ratio: 1;
+    }
+
+    @keyframes shimmer {
+      from { background-position: 200% 0; }
+      to   { background-position: -200% 0; }
+    }
+
+    /* ========================
+       RESPONSIVE
+    ======================== */
+    @media (max-width: 600px) {
+      .topbar { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .topbar h1 { font-size: 1.5rem; }
+      .image-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    }
+  </style>
 </head>
 
 <body style="display:none">
 
-  <main class="glass-card">
-    <header class="header">
-      <h1>Explorateur d’images</h1>
-      <p>Ajoute, prévisualise et réutilise tes images facilement</p>
-      <a href="../admin.html" class="editeur">retour à l'édition des cours</a>
+  <div class="shell">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-eyebrow">Node Platform</span>
+        <h1>Médiathèque</h1>
+      </div>
+      <a href="../admin.html" class="topbar-back">
+        ← Retour à l'édition
+      </a>
     </header>
 
-    <button id="openExplorer" class="btn primary">
-      + Ajouter / choisir une image
-    </button>
-
-    <section id="result" class="result" hidden>
-      <img id="preview" alt="Prévisualisation">
-      <div class="url-box">
-        <input id="imageUrl" readonly>
-        <button id="copyUrl" class="btn ghost">copier le lien</button>
+    <!-- UPLOAD ZONE -->
+    <div class="upload-zone" id="openExplorer" role="button" tabindex="0" aria-label="Ajouter une image">
+      <div class="upload-icon">🖼️</div>
+      <div>
+        <div class="upload-title">Ajouter une image</div>
+        <div class="upload-sub">Cliquez pour ouvrir le sélecteur · JPEG, PNG, WebP, GIF</div>
       </div>
-    </section>
+    </div>
 
-    <h2>Images déjà uploadées</h2>
+    <!-- RESULT CARD (after upload) -->
+    <div class="result-card" id="result">
+      <img class="result-preview" id="preview" alt="Prévisualisation">
+      <div class="result-footer">
+        <input id="imageUrl" readonly placeholder="URL de l'image...">
+        <button class="btn-copy" id="copyUrl">
+          <span>📋</span> Copier le lien
+        </button>
+      </div>
+    </div>
+
+    <!-- GALLERY -->
+    <div class="section-header">
+      <h2 class="section-title">Images uploadées</h2>
+      <span class="image-count" id="imageCount">—</span>
+    </div>
+
     <div id="imageContainer" class="image-grid"></div>
-  </main>
+
+  </div>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Fermer">✕</button>
+    <img id="lightboxImg" src="" alt="Aperçu">
+    <div class="lightbox-url">
+      <span id="lightboxUrl"></span>
+      <button class="btn-copy" id="lightboxCopy">📋 Copier</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- Cloudinary -->
   <script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
@@ -44,5 +517,65 @@
 
   <!-- Logic -->
   <script type="module" src="js/explorer.js"></script>
+
+  <!-- Enhanced UI logic -->
+  <script type="module">
+    /* Toast helper */
+    window.showToast = function(msg, icon = "✅") {
+      const t = document.getElementById("toast");
+      t.textContent = icon + " " + msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2800);
+    };
+
+    /* Lightbox */
+    const lightbox     = document.getElementById("lightbox");
+    const lightboxImg  = document.getElementById("lightboxImg");
+    const lightboxUrl  = document.getElementById("lightboxUrl");
+    const lightboxCopy = document.getElementById("lightboxCopy");
+    const lightboxClose= document.getElementById("lightboxClose");
+
+    window.openLightbox = function(url) {
+      lightboxImg.src = url;
+      lightboxUrl.textContent = url;
+      lightbox.classList.add("open");
+      document.body.style.overflow = "hidden";
+    };
+
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      document.body.style.overflow = "";
+      lightboxImg.src = "";
+    }
+
+    lightboxClose.addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", e => { if (e.target === lightbox) closeLightbox(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeLightbox(); });
+
+    lightboxCopy.addEventListener("click", () => {
+      navigator.clipboard.writeText(lightboxUrl.textContent);
+      showToast("URL copiée dans le presse-papier");
+    });
+
+    /* Enhanced copy button */
+    document.getElementById("copyUrl")?.addEventListener("click", function() {
+      const url = document.getElementById("imageUrl").value;
+      if (!url) return;
+      navigator.clipboard.writeText(url);
+      this.textContent = "✓ Copié !";
+      this.classList.add("copied");
+      showToast("URL copiée dans le presse-papier");
+      setTimeout(() => {
+        this.innerHTML = "<span>📋</span> Copier le lien";
+        this.classList.remove("copied");
+      }, 2000);
+    });
+
+    /* Show result card when image is uploaded */
+    const observer = new MutationObserver(() => {
+      const resultCard = document.getElementById("result");
+      const resultOld = document.getElementById("result");
+    });
+  </script>
 </body>
 </html>
