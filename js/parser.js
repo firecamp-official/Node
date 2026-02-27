@@ -71,17 +71,28 @@ export function parseTextToHTML(text) {
 
 // ---------------- INLINE FORMATTING ----------------
 function inline(text) {
-  // Escape user-provided raw text first, then insert safe HTML for markdown constructs
-  const escaped = escapeHTML(text);
-  return escaped
-    .replace(/`([^`]+)`/g, "<code>$1</code>")          // inline code
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>") // bold
-    .replace(/_(.+?)_/g, "<em>$1</em>")               // italic
-    .replace(/~~(.+?)~~/g, "<s>$1</s>")               // strikethrough
+  // Process images and links BEFORE escaping to preserve URLs
+  let out = text
+    .replace(
+      /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g,
+      (_, alt, url) => `<img src="${url}" alt="${escapeHTML(alt)}" loading="lazy" style="max-width:100%;border-radius:8px;margin:8px 0;">`
+    )
     .replace(
       /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+      (_, label, url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHTML(label)}</a>`
     );
+
+  // Split on HTML tags to escape only text parts
+  out = out.split(/(<[^>]+>)/).map((part, i) => {
+    if (i % 2 === 1) return part; // HTML tag, leave alone
+    return escapeHTML(part)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/_(.+?)_/g, "<em>$1</em>")
+      .replace(/~~(.+?)~~/g, "<s>$1</s>");
+  }).join("");
+
+  return out;
 }
 
 function escapeHTML(str) {
@@ -149,6 +160,10 @@ function walk(node, indent = 0) {
 
       case "li":
         out += walk(child, indent + 2);
+        break;
+
+      case "img":
+        out += `![${child.getAttribute("alt") || ""}](${child.getAttribute("src")})`;
         break;
 
       case "a":
