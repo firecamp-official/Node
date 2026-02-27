@@ -114,7 +114,18 @@ function createSection({ id = null, title = "", raw = "", image = "" } = {}) {
           case 'ol': tpl = '1. Élément 1\n2. Élément 2\n\n'; token = 'Élément 1'; break;
           case 'quote': tpl = '> Citation\n\n'; token = 'Citation'; break;
           case 'link': tpl = '[texte](https://example.com)'; token = 'texte'; break;
-          case 'image': tpl = '![alt](https://example.com/image.png)'; token = 'alt'; break;
+          case 'image': {
+            const imageUrlInput = div.querySelector('.imageUrl');
+            const url = prompt('URL de l\'image :', imageUrlInput?.value || 'https://');
+            if (url && url !== 'https://') {
+              if (imageUrlInput) imageUrlInput.value = url;
+              tpl = `![image](${url})`;
+              token = 'image';
+              insertAtCaret(textarea, tpl, null);
+              updatePreview();
+            }
+            return;
+          }
         }
         insertAtCaret(textarea, tpl, token);
         updatePreview();
