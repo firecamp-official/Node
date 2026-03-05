@@ -1,47 +1,5 @@
 import { supabase } from "./supabase.js";
 
-/* ======================================================
-   🔑 0️⃣ RECOVERY / RESET PASSWORD (AU TOUT DÉBUT)
-====================================================== */
-(async () => {
-  const hash = window.location.hash;
-
-  if (!hash || !hash.includes("type=recovery")) return;
-
-  const params = new URLSearchParams(hash.substring(1));
-  const access_token = params.get("access_token");
-  const refresh_token = params.get("refresh_token");
-
-  if (!access_token || !refresh_token) {
-    document.getElementById("recoveryMessage").textContent =
-      "🔴 Lien de réinitialisation invalide ou expiré.";
-    return;
-  }
-
-  const { error } = await supabase.auth.setSession({
-    access_token,
-    refresh_token
-  });
-
-  if (error) {
-    document.getElementById("recoveryMessage").textContent =
-      "🔴 Lien invalide ou expiré. Demande un nouveau lien.";
-    return;
-  }
-
-  // Nettoyage URL
-  history.replaceState(null, "", window.location.pathname);
-
-  // Affiche la box et message
-  const recoveryBox = document.getElementById("recoveryBox");
-  const recoveryMessage = document.getElementById("recoveryMessage");
-  if (recoveryBox) recoveryBox.style.display = "block";
-  if (recoveryMessage) {
-    recoveryMessage.textContent = "🔐 Choisis ton nouveau mot de passe";
-    recoveryMessage.style.color = "#9be7ff";
-  }
-})();
-
 /* ==============================
    ÉLÉMENTS DU FORMULAIRE
 ============================== */
@@ -57,7 +15,6 @@ const usernameInput = document.getElementById("username");
 const newPasswordInput = document.getElementById("newPassword");
 const termsCheckbox = document.getElementById("terms");
 
-// Honeypot invisible
 const honeypotInput = document.querySelector('input[name="website"]');
 
 /* ==============================
@@ -84,6 +41,50 @@ function checkHoneypot() {
 function checkHumanScore(minScore = 5, minTimeMs = 800) {
   return humanScore >= minScore && (Date.now() - startTime) >= minTimeMs;
 }
+
+/* ======================================================
+   🔑 RECOVERY / RESET PASSWORD
+   — handled via onAuthStateChange (PASSWORD_RECOVERY event)
+     instead of a manual setSession() on load to avoid
+     the Web Locks race condition.
+====================================================== */
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === "PASSWORD_RECOVERY") {
+    // Clean the hash from the URL
+    history.replaceState(null, "", window.location.pathname);
+
+    const recoveryBox = document.getElementById("recoveryBox");
+    const recoveryMessage = document.getElementById("recoveryMessage");
+    if (recoveryBox) recoveryBox.style.display = "block";
+    if (recoveryMessage) {
+      recoveryMessage.textContent = "🔐 Choisis ton nouveau mot de passe";
+      recoveryMessage.style.color = "#9be7ff";
+    }
+    return;
+  }
+
+  if (event === "SIGNED_IN" && session?.user) {
+    const user = session.user;
+
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    if (!existing) {
+      const username =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email.split("@")[0];
+
+      await supabase.from("profiles").insert({
+        id: user.id,
+        username
+      });
+    }
+  }
+});
 
 /* ==============================
    🔁 MOT DE PASSE OUBLIÉ
@@ -228,50 +229,20 @@ googleBtn?.addEventListener("click", async () => {
 });
 
 /* ==============================
-   CRÉATION PROFIL GOOGLE (si nouveau)
-============================== */
-supabase.auth.onAuthStateChange(async (event, session) => {
-  if (event === "SIGNED_IN" && session?.user) {
-    const user = session.user;
-
-    // Vérifie si le profil existe déjà
-    const { data: existing } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
-      .single();
-
-    if (!existing) {
-      // Nouveau user Google → crée le profil avec son nom Google comme pseudo
-      const username = user.user_metadata?.full_name
-        || user.user_metadata?.name
-        || user.email.split("@")[0];
-
-      await supabase.from("profiles").insert({
-        id: user.id,
-        username
-      });
-    }
-  }
-});
-
-/* ==============================
    USER COUNT
 ============================== */
 async function loadUserCount() {
-  const el = document.getElementById('userCount');
+  const el = document.getElementById("userCount");
   if (!el) return;
 
   try {
-    const { data, error } = await supabase
-      .rpc('get_total_members_count');
-
+    const { data, error } = await supabase.rpc("get_total_members_count");
     if (error) throw error;
-
     el.textContent = `${data} membres inscrits`;
   } catch (err) {
-    console.error('loadUserCount', err);
-    el.textContent = 'Membres : —';
+    console.error("loadUserCount", err);
+    el.textContent = "Membres : —";
   }
 }
+
 loadUserCount();
