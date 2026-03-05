@@ -41,6 +41,18 @@ function hideLoader() {
 ========================== */
 
 const { user, profile } = await requireUser();
+console.log("PROFILE:", profile);
+/* ==========================
+   ADMIN LINK VISIBILITY
+========================== */
+
+const adminLink = document.getElementById("adminLink");
+if (adminLink) {
+  if (profile.role === "admin") {
+    adminLink.style.setProperty("display", "block");
+  }
+  // Sinon : la règle CSS #adminLink { display:none } s'applique
+}
 
 /* ==========================
    PROFILE BUBBLE & DROPDOWN
