@@ -4,17 +4,317 @@
 <head>
     <link rel="shortcut icon" href="css/favicon.ico">
     <link rel="shortcut icon" href="css/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="css/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="css/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="css/apple-touch-icon-180x180.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="css/apple-touch-icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="css/apple-touch-icon-120x120.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="css/android-chrome-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="css/android-chrome-512x512.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./css/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./css/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./css/apple-touch-icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./css/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="./css/apple-touch-icon-120x120.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="./css/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
     <meta charset="UTF-8">
     <title>Cours – Plateforme</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* =============================================
+           SEARCH BAR
+        ============================================= */
+        .search-wrapper {
+            position: relative;
+            margin-top: 8px;
+        }
+
+        .search-wrapper svg {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #888;
+            width: 15px;
+            height: 15px;
+        }
+
+        #courseSearch {
+            width: 100%;
+            padding: 8px 10px 8px 32px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #1a1a1a;
+            color: #eee;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        #courseSearch:focus {
+            outline: none;
+            border-color: #6c8ebf;
+        }
+
+        #courseSearch::placeholder {
+            color: #666;
+        }
+
+        /* =============================================
+           NOTE BUTTON (floating)
+        ============================================= */
+        #noteBtn {
+            position: fixed;
+            bottom: 88px;
+            right: 24px;
+            z-index: 900;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: #6c8ebf;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+            transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+
+        #noteBtn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+        }
+
+        #noteBtn svg {
+            width: 22px;
+            height: 22px;
+            pointer-events: none;
+        }
+
+        /* Badge count */
+        #noteBtn .note-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        /* =============================================
+           NOTE MODAL OVERLAY
+        ============================================= */
+        #noteModal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0);
+            pointer-events: none;
+            transition: background 0.25s;
+        }
+
+        #noteModal.open {
+            background: rgba(0, 0, 0, 0.55);
+            pointer-events: all;
+        }
+
+        .note-panel {
+            width: 100%;
+            max-width: 580px;
+            background: #1c1c1c;
+            border-radius: 20px 20px 0 0;
+            padding: 0;
+            transform: translateY(110%);
+            transition: transform 0.32s cubic-bezier(0.34, 1.1, 0.64, 1);
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+        }
+
+        #noteModal.open .note-panel {
+            transform: translateY(0);
+        }
+
+        .note-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px 12px;
+            border-bottom: 1px solid #2a2a2a;
+            flex-shrink: 0;
+        }
+
+        .note-panel-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #eee;
+        }
+
+        .note-panel-header h3 svg {
+            width: 17px;
+            height: 17px;
+            color: #6c8ebf;
+        }
+
+        .note-close-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #888;
+            padding: 4px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .note-close-btn:hover {
+            color: #eee;
+            background: #2a2a2a;
+        }
+
+        .note-close-btn svg { width: 18px; height: 18px; }
+
+        /* Input area */
+        .note-input-area {
+            padding: 14px 20px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid #2a2a2a;
+            flex-shrink: 0;
+        }
+
+        #noteInput {
+            flex: 1;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #eee;
+            font-size: 16px; /* ≥16px empêche le zoom auto sur iOS/Android */
+            resize: none;
+            min-height: 60px;
+            max-height: 120px;
+            line-height: 1.5;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        #noteInput:focus {
+            outline: none;
+            border-color: #6c8ebf;
+        }
+
+        #noteInput::placeholder { color: #555; }
+
+        .note-add-btn {
+            align-self: flex-end;
+            padding: 10px 16px;
+            background: #6c8ebf;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.15s, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .note-add-btn:hover { filter: brightness(1.1); }
+        .note-add-btn:active { transform: scale(0.96); }
+
+        /* Notes list */
+        .note-list {
+            overflow-y: auto;
+            padding: 12px 20px 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .note-empty {
+            text-align: center;
+            padding: 32px 0;
+            color: #666;
+            font-size: 0.88rem;
+        }
+
+        .note-item {
+            background: #111;
+            border: 1px solid #282828;
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            animation: noteSlideIn 0.22s ease;
+        }
+
+        @keyframes noteSlideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .note-item-text {
+            flex: 1;
+            font-size: 0.88rem;
+            color: #ddd;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .note-item-date {
+            font-size: 0.72rem;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .note-delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #555;
+            padding: 2px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            transition: color 0.15s;
+            display: flex;
+        }
+
+        .note-delete-btn:hover { color: #ef4444; }
+        .note-delete-btn svg { width: 15px; height: 15px; }
+
+        /* Drag handle */
+        .note-drag-handle {
+            width: 36px;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            margin: 10px auto 0;
+        }
+
+        /* Masqué par défaut — révélé par JS si admin */
+        #adminLink { display: none; }
+    </style>
 </head>
 
 <body>
@@ -29,7 +329,23 @@
 
             <select id="classFilter"></select>
             <select id="subjectFilter"></select>
-            <a href="admin.html">Admin</a>
+
+            <!-- 🔍 Champ de recherche -->
+            <div class="search-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input
+                    type="search"
+                    id="courseSearch"
+                    placeholder="Titre ou éditeur…"
+                    autocomplete="off"
+                    spellcheck="false"
+                />
+            </div>
+
+            <a href="admin.html" id="adminLink">Admin</a>
         </aside>
 
         <main class="content">
@@ -49,20 +365,61 @@
                 <h2>Derniers cours ajoutés</h2>
                 <div id="latestCourses" class="latest-grid"></div>
             </section>
-
-
-
         </main>
 
-
-
     </div>
+
+    <!-- 📝 Bouton note flottant -->
+    <button id="noteBtn" title="Mes notes rapides" aria-label="Ouvrir les notes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        <span class="note-count" id="noteCount"></span>
+    </button>
+
+    <!-- 📋 Modal / panneau de notes -->
+    <div id="noteModal" role="dialog" aria-modal="true" aria-label="Notes rapides">
+        <div class="note-panel">
+            <div class="note-drag-handle"></div>
+            <div class="note-panel-header">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9"/>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                    Notes rapides
+                </h3>
+                <button class="note-close-btn" id="noteCloseBtn" aria-label="Fermer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="note-input-area">
+                <textarea
+                    id="noteInput"
+                    placeholder="Écris une note, un rappel, une idée…"
+                    rows="2"
+                    maxlength="500"
+                ></textarea>
+                <button class="note-add-btn" id="noteAddBtn">Ajouter</button>
+            </div>
+
+            <div class="note-list" id="noteList">
+                <div class="note-empty" id="noteEmpty">Aucune note pour l'instant.</div>
+            </div>
+        </div>
+    </div>
+
     <footer class="site-footer">
         <div class="footer-container">
 
             <div class="footer-brand">
                 <h3>Node</h3>
-                <p>Plateforme d’entraide scolaire collaborative.</p>
+                <p>Plateforme d'entraide scolaire collaborative.</p>
             </div>
 
             <nav class="footer-links">
@@ -77,7 +434,194 @@
     </footer>
 
     <script type="module" src="js/user.js"></script>
+
+    <!-- =============================================
+         NOTES & SEARCH — script autonome (pas besoin de Supabase)
+    ============================================== -->
+    <script>
+    (() => {
+        /* ---- NOTES ---- */
+        const STORAGE_KEY = "node_quick_notes";
+        const noteBtn     = document.getElementById("noteBtn");
+        const noteModal   = document.getElementById("noteModal");
+        const noteCloseBtn= document.getElementById("noteCloseBtn");
+        const noteInput   = document.getElementById("noteInput");
+        const noteAddBtn  = document.getElementById("noteAddBtn");
+        const noteList    = document.getElementById("noteList");
+        const noteEmpty   = document.getElementById("noteEmpty");
+        const noteCount   = document.getElementById("noteCount");
+
+        function getNotes() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+            catch { return []; }
+        }
+
+        function saveNotes(notes) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+        }
+
+        function updateBadge(notes) {
+            if (notes.length > 0) {
+                noteCount.textContent = notes.length;
+                noteCount.style.display = "flex";
+            } else {
+                noteCount.style.display = "none";
+            }
+        }
+
+        function formatDate(iso) {
+            return new Date(iso).toLocaleString("fr-FR", {
+                day: "2-digit", month: "short",
+                hour: "2-digit", minute: "2-digit"
+            });
+        }
+
+        function renderNotes() {
+            const notes = getNotes();
+            updateBadge(notes);
+
+            // Clear (but keep empty message node)
+            [...noteList.querySelectorAll(".note-item")].forEach(n => n.remove());
+
+            noteEmpty.style.display = notes.length === 0 ? "block" : "none";
+
+            notes.forEach((note, idx) => {
+                const item = document.createElement("div");
+                item.className = "note-item";
+                item.innerHTML = `
+                    <div style="flex:1">
+                        <div class="note-item-text">${escapeHTML(note.text)}</div>
+                        <div class="note-item-date">${formatDate(note.createdAt)}</div>
+                    </div>
+                    <button class="note-delete-btn" data-idx="${idx}" aria-label="Supprimer cette note">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14H6L5 6"/>
+                            <path d="M10 11v6M14 11v6"/>
+                            <path d="M9 6V4h6v2"/>
+                        </svg>
+                    </button>
+                `;
+                noteList.appendChild(item);
+            });
+        }
+
+        function escapeHTML(str = "") {
+            return str
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function addNote() {
+            const text = noteInput.value.trim();
+            if (!text) {
+                noteInput.focus();
+                noteInput.style.borderColor = "#ef4444";
+                setTimeout(() => noteInput.style.borderColor = "", 600);
+                return;
+            }
+            const notes = getNotes();
+            notes.unshift({ text, createdAt: new Date().toISOString() });
+            saveNotes(notes);
+            noteInput.value = "";
+            renderNotes();
+        }
+
+        function openModal() {
+            noteModal.classList.add("open");
+            // Ne pas focus automatiquement sur mobile : évite le zoom
+            // et le déclenchement du clavier virtuel à l'ouverture
+            const isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+            if (!isMobile) {
+                noteInput.focus();
+            }
+        }
+
+        function closeModal() {
+            noteModal.classList.remove("open");
+        }
+
+        noteBtn.addEventListener("click", openModal);
+        noteCloseBtn.addEventListener("click", closeModal);
+
+        // Close on backdrop click
+        noteModal.addEventListener("click", (e) => {
+            if (e.target === noteModal) closeModal();
+        });
+
+        // Close on ESC
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && noteModal.classList.contains("open")) closeModal();
+        });
+
+        // Add note
+        noteAddBtn.addEventListener("click", addNote);
+        noteInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                addNote();
+            }
+        });
+
+        // Delete note (delegation)
+        noteList.addEventListener("click", (e) => {
+            const btn = e.target.closest(".note-delete-btn");
+            if (!btn) return;
+            const idx = parseInt(btn.dataset.idx, 10);
+            const notes = getNotes();
+            notes.splice(idx, 1);
+            saveNotes(notes);
+            renderNotes();
+        });
+
+        renderNotes();
+
+        /* ---- SEARCH ---- */
+        const searchInput = document.getElementById("courseSearch");
+        if (!searchInput) return;
+
+        let searchQuery = "";
+
+        searchInput.addEventListener("input", () => {
+            searchQuery = searchInput.value.trim().toLowerCase();
+            filterCourseCards();
+        });
+
+        function filterCourseCards() {
+            // Filter cards in #courseList
+            const cards = document.querySelectorAll("#courseList .card.course-card");
+            cards.forEach(card => {
+                const title  = (card.querySelector("h3")?.textContent ?? "").toLowerCase();
+                const editor = (card.querySelector(".editor")?.textContent ?? "").toLowerCase();
+                const match  = !searchQuery || title.includes(searchQuery) || editor.includes(searchQuery);
+                card.style.display = match ? "" : "none";
+            });
+
+            // Filter latest cards
+            const latestCards = document.querySelectorAll("#latestCourses .latest-card");
+            latestCards.forEach(card => {
+                const title  = (card.querySelector("h3")?.textContent ?? "").toLowerCase();
+                const editor = (card.querySelector(".editor")?.textContent ?? "").toLowerCase();
+                const match  = !searchQuery || title.includes(searchQuery) || editor.includes(searchQuery);
+                card.style.display = match ? "" : "none";
+            });
+        }
+
+        // Re-apply filter whenever courses are (re-)rendered via MutationObserver
+        const courseListEl = document.getElementById("courseList");
+        const latestEl     = document.getElementById("latestCourses");
+
+        const observer = new MutationObserver(() => {
+            if (searchQuery) filterCourseCards();
+        });
+
+        if (courseListEl) observer.observe(courseListEl, { childList: true, subtree: true });
+        if (latestEl)     observer.observe(latestEl,     { childList: true, subtree: true });
+
+    })();
+    </script>
+
 </body>
 
 </html>
-
