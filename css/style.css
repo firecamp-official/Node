@@ -872,7 +872,7 @@ aside a:hover {
 
 .back-to-top {
   position: fixed;
-  bottom: 32px;
+  bottom: 45px;
   right: 32px;
   width: 48px;
   height: 48px;
@@ -1488,3 +1488,4 @@ select option {
   color: var(--text);
   font-weight: 500;
 }
+
